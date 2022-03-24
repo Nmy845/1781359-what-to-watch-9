@@ -1,94 +1,63 @@
-import MainScreen from '../main-screen/main-screen';
-import CardTemplate from '../card-template/card-template';
-import {BrowserRouter, Route, Routes, Link} from 'react-router-dom';
-import SignIn from '../sign-in/sign-in';
-import MyList from '../my-list/my-list';
-import MoviePage from '../movie-page/movie-page';
-import AddReview from '../add-review/add-review';
-import { Fragment } from 'react';
+import {
+  Router as BrowserRouter,
+  Switch,
+  Route
+} from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import AddReview from '../pages/add-review-page/add-review/add-review';
+import Film from '../pages/film-page/film/film';
+import Main from '../pages/main-page/main/main';
+import MyList from '../pages/my-list-page/my-list';
+import NotFound from '../not-found/not-found';
+import Player from '../pages/player-page/player/player';
 import PrivateRoute from '../private-route/private-route';
-import {AuthorizationStatus } from '../../const';
-import Player from '../player/player';
+import SignIn from '../pages/sign-in-page/sign-in';
+import Spinner from '../spinner/spinner';
+import { browserHistory } from '../../browser-history';
+import { getAuthorizationStatus } from '../../store/auth/selectors';
+import {
+  getIsDataLoaded,
+  getPromo
+} from '../../store/film-list/selectors';
+import {
+  AppRoute,
+  AuthorizationStatus
+} from '../../const';
 
-type AppScreenProps = {
-  name: string,
-  year: number,
-  type: string,
-}
-function App({name, year, type}: AppScreenProps): JSX.Element {
+export default function App(): JSX.Element {
+  const isDataLoaded = useSelector(getIsDataLoaded);
+  const authorizationStatus = useSelector(getAuthorizationStatus);
+  const promo = useSelector(getPromo);
+
+  if (authorizationStatus === AuthorizationStatus.Unknown || !isDataLoaded || !promo.id) {
+    return <Spinner />;
+  }
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route index element={
-          <MainScreen name={name} year={year} type={type}>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-            <CardTemplate/>
-          </MainScreen>
-        }
-        />
-        <Route
-          path={'login'}
-          element={<SignIn/>}
-        />
-        <Route
-          path={'mylist'}
-          element={
-            <PrivateRoute
-              authorizationStatus={AuthorizationStatus.NoAuth}
-            >
-              <MyList/>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path={'films/:id'}
-          element={<MoviePage/>}
-        />
-        <Route
-          path={'player/:id'}
-          element={<Player/>}
-        />
-        <Route
-          path={'films/:id/review'}
-          element={
-            <PrivateRoute
-              authorizationStatus={AuthorizationStatus.NoAuth}
-            >
-              <AddReview/>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="*" element={
-            <Fragment>
-              <h1>
-               404 Page not Found
-              </h1>
-              <Link to="/">Back to main page</Link>
-            </Fragment>
-          }
-        />
-      </Routes>
+    <BrowserRouter history={browserHistory}>
+      <Switch>
+        <Route path={AppRoute.Main} exact>
+          <Main />
+        </Route>
+        <Route path={AppRoute.SignIn} exact>
+          <SignIn />
+        </Route>
+        <PrivateRoute exact path={AppRoute.MyList}>
+          <MyList />
+        </PrivateRoute>
+        <Route path={AppRoute.Film} exact>
+          <Film />
+        </Route>
+        <PrivateRoute exact path={AppRoute.AddReview}>
+          <AddReview />
+        </PrivateRoute>
+        <Route path={AppRoute.Player} exact>
+          <Player />
+        </Route>
+        <Route>
+          <NotFound />
+        </Route>
+      </Switch>
     </BrowserRouter>
   );
 }
-
-export default App;

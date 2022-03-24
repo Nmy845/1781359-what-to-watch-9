@@ -1,20 +1,28 @@
-import { Navigate, RouteProps } from 'react-router-dom';
-import { AppRoute, AuthorizationStatus } from '../../const';
+import {
+  useSelector
+} from 'react-redux';
+import {
+  Route,
+  Redirect,
+  RouteProps
+} from 'react-router-dom';
+import { getAuthorizationStatus } from '../../store/auth/selectors';
+import {
+  AppRoute,
+  AuthorizationStatus
+} from '../../const';
 
-
-type PrivateRouteProps = RouteProps & {
-  authorizationStatus: AuthorizationStatus;
-  children: JSX.Element;
-}
-
-function PrivateRoute(props: PrivateRouteProps): JSX.Element {
-  const {authorizationStatus, children} = props;
+export default function PrivateRoute(props: RouteProps): JSX.Element {
+  const {exact, path, children} = props;
+  const authorizationStatus = useSelector(getAuthorizationStatus);
 
   return (
-    authorizationStatus === AuthorizationStatus.Auth
-      ? children
-      : <Navigate to={AppRoute.Login} />
+    <Route exact={exact} path={path}>
+      {
+        authorizationStatus === AuthorizationStatus.Auth
+          ? children
+          : <Redirect to={AppRoute.SignIn} />
+      }
+    </Route>
   );
 }
-
-export default PrivateRoute;
